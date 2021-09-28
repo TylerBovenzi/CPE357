@@ -4,7 +4,7 @@
 
 struct listelement *head = NULL;
 struct listelement *tail = NULL;
-
+int length = 0;
 struct listelement
 {
     struct listelement *next,*prev;
@@ -28,6 +28,7 @@ void appendTo(){
         tail = new;
         tail->prev = temp;
     }
+    length++;
 }
 
 void printList(){
@@ -41,19 +42,46 @@ void printList(){
 }
 
 void deleteItem(){
-    if(tail){
-        struct listelement *addr = tail;
-        if(addr->prev){
-            tail = addr->prev;
-            tail->next = NULL;
-        } else {
-            tail = NULL;
-            head = NULL;
-        }
-        free(addr);
-    } else {
-        printf("\nList is empty\n");
+    int index =0;
+    struct listelement *addr = head;
+    if(length == 0){
+        printf("\nList is already empty\n");
+        return;
     }
+    if(length == 1){
+        printf("\nDeleted Only Element\n");
+        free(head);
+        tail = NULL;
+        head = NULL;
+        length = 0;
+        return;
+    }
+    while(index<1 || index>length){
+        printf("Please enter an integer between 1 and %d: ",length);
+        while(scanf("%d",&index) != 1){
+            printf("Please enter an integer:");
+            while(getchar() != '\n');
+        }
+    }
+    for(int i=1;i<index;i++){
+        if(addr->next) addr = addr->next;
+        else return;
+    }
+    if(addr->prev){ //if not the first element
+        if(addr->next){ //if middle
+            addr->prev->next=addr->next;
+            addr->next->prev=addr->prev;
+        } else {  //if end
+            addr->prev->next=NULL;
+            tail=addr->prev;
+        }
+    } else { //if fist elelement (must have next)
+        head = addr->next;
+        addr->next->prev = NULL;
+    }
+    printf("\nDeleted Element %d\n",index);
+    free(addr);
+    length--;
 }
 
 void main(){
@@ -70,6 +98,9 @@ void main(){
         else if(selection == 2) printList();
         else if(selection == 3) deleteItem();
     }
-    while(head) deleteItem();
+    while(head){            //Free remaining memory
+        free(head);         
+        head=head->next;
+    }
     printf("\nExiting...\n");
 }
