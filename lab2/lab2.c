@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 
 struct listelement *head = NULL;
@@ -11,11 +12,13 @@ struct listelement
 }listelement;
 
 void appendTo(){
+    char flush;
     struct listelement* new = (struct listelement*)malloc(sizeof(listelement));
     new->next = NULL;
     new->prev = NULL;
     printf("\nInput String: ");
-    scanf("%s",new->text);
+    scanf("%c",&flush);
+    scanf("%[^\n]",new->text);
     if(!tail){
         head = new;
         tail = new;
@@ -58,7 +61,10 @@ void main(){
     selection=0;
     while (selection != 4){
         printf("\nSelect:\n1 push string\n2 print list\n3 delete item\n4 end program\nSelection:");
-        scanf("%d",&selection);
+            while(scanf("%d",&selection) != 1){
+                printf("Please enter an integer:");
+                while(getchar() != '\n');
+            }
         if( selection<1 || selection>4) printf("\nInvalid Selection\n\n");
         else if(selection == 1) appendTo();
         else if(selection == 2) printList();
