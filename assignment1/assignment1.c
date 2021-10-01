@@ -120,21 +120,13 @@ void writeBMP(const char* name, BMP bmp){
     fclose(fp);
 }
 
-double getX(int x, BMP bmp1, BMP bmp2){
-   return x * (bmp2.WIDTH+0.0f) / bmp1.WIDTH;
-}
-
-double getY(int y, BMP bmp1, BMP bmp2){
-   return y * (bmp2.HEIGHT+0.0f) / bmp1.HEIGHT;
-}
-
 BYTE blur(BYTE c1, BYTE c2, float ratio){
     return((c1*ratio)+(c2*(1-ratio)));
 }
 
 void interpolate(int x, int y, BMP bmp1, BMP bmp2, BYTE* color){
-    double xdub = getX(x, bmp1, bmp2);
-    double ydub = getY(y, bmp1, bmp2);
+    double xdub = x * (bmp2.WIDTH+0.0f) / bmp1.WIDTH;
+    double ydub = y * (bmp2.HEIGHT+0.0f) / bmp1.HEIGHT;
 
     int smallX = (int)xdub;
     float xDif = xdub-smallX;
@@ -169,8 +161,6 @@ void interpolate(int x, int y, BMP bmp1, BMP bmp2, BYTE* color){
     color[0] = blur(leftB, rightB, xDif);
     color[1] = blur(leftG, rightG, xDif);
     color[2] = blur(leftR, rightR, xDif);
-
-    return;
 }
 
 //if using photoshop -> export as 24bit RBG
@@ -199,5 +189,7 @@ void main(){
     }
 
     writeBMP("out.bmp",bmpOut);
-
+    free(bmp1.data);
+    free(bmp2.data);
+    free(bmpOut.data);
 }
