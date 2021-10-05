@@ -1,11 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
 typedef unsigned short WORD;
 typedef unsigned int DWORD;
 typedef unsigned int LONG;
 typedef unsigned char BYTE;
 
+#define help "\n\033[0;32m---------------------------------------\n\tImage Blender Usage:\n---------------------------------------\033[0m\n\nPlease specify the following parameters:\n\t1. Input File 1 Name\n\t2. Input File 2 Name\n\t3. Blend ratio (0.0-1.0)\n\t4. Output File Name\n\n\033[1;31mParameters must be supplied in this order\033[0m\n\n"
 
 
 typedef struct tagBITMAPFILEHEADER
@@ -41,6 +43,15 @@ typedef struct tagBMP
     int HEIGHT;
     int pixelWidth;
 }BMP;
+
+BYTE checkFile(char* filename){
+    FILE *temp;
+    if(temp = fopen(filename, "rb")){
+        fclose(temp);
+        return 1;
+    }
+    return 0;
+}
 
 unsigned char getBlue(int x, int y, BMP bmp){
     if(x>bmp.WIDTH) x = bmp.WIDTH;
@@ -109,7 +120,7 @@ BMP cloneBMP(BMP bmp){
 }
 
 void writeBMP(const char* name, BMP bmp){
-    FILE *fp = fopen("out.bmp","wb");
+    FILE *fp = fopen(name,"wb");
     fwrite(&bmp.FileHead.bfType, 2, 1, fp);
     fwrite(&bmp.FileHead.bfSize, 4, 1, fp);
     fwrite(&bmp.FileHead.bfReserved1, 2, 1, fp);
@@ -164,14 +175,31 @@ void interpolate(int x, int y, BMP bmp1, BMP bmp2, BYTE* color){
 }
 
 //if using photoshop -> export as 24bit RBG
-void main(){
+void main(int args, char *arg[]){
+
+    if (args != 5){
+        printf(help);
+        return;
+    }
+
+    if (((float)atof(arg[3]) < 0) || ((float)atof(arg[3]) > 1)){
+        printf("\033[1;31mError: Invalid Ratio\033[0m\nRatio must be in range 0-1\n");
+        return;
+    }
 
     struct tagBMP bmp1, bmp2, bmpOut;
-    bmp1 = readBMP("wolf.bmp");
-    bmp2= readBMP("jar.bmp");
+    for(int i = 1; i<=2; i++){
+        if(!checkFile(arg[i])){
+            printf("\033[1;31mError: Input file %d does not exist\033[0m\n", i);
+            return;
+        }
+    }
+
+    bmp1 = readBMP(arg[1]);
+    bmp2= readBMP(arg[2]);
     bmpOut = cloneBMP(bmp1);
 
-    float ratio = 0.5;
+    float ratio = (float)atof(arg[3]);
     for(int y=0; y<bmp1.HEIGHT; y++){
         for(int x =0; x<bmp1.WIDTH; x++){
             BYTE smaller[3];
@@ -188,7 +216,8 @@ void main(){
         }
     }
 
-    writeBMP("out.bmp",bmpOut);
+    writeBMP(arg[4],bmpOut);
+    printf("\033[0;32mFiles Blended Succesfully\n\033[0m");
     free(bmp1.data);
     free(bmp2.data);
     free(bmpOut.data);
