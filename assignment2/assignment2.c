@@ -50,7 +50,7 @@ char* mymalloc(int size){
             addr = addr->next;                      //check next
         }
     }
-    struct chunkhead* new = 
+    struct chunkhead* new;
 
     return 0;                                       //no available chunks
 }
@@ -98,6 +98,8 @@ void analyse(){
         addr=addr->next;
     }
 }
+
+
 
 void main(){
     char *a = mymalloc(12000);
