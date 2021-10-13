@@ -73,6 +73,7 @@ char* mymalloc(int size){
         }
         return (char*)(addr+1);
     }
+<<<<<<< HEAD
     while(addr->next){
         addr = addr->next;
     }
@@ -113,6 +114,9 @@ char* mymalloc(int size){
     new->prev=addr;
     addr->next=new;
     return (char *)(new+1);
+=======
+    struct chunkhead* new;
+>>>>>>> 3e6b377d502fe6574252f12c605a0e59945a9d4e
 
     return 0;                                       //no available chunks
 }
@@ -199,6 +203,8 @@ void test(){
     analyze();// 25% should be an empty heap now with the start address
     //from the program start
 }
+
+
 
 void main(){
     test();
