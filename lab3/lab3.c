@@ -33,7 +33,8 @@ char* mymalloc(int size){
             addr->info=1;                           //set chunk as occupied 
             if(sizeDif){                            //handle splitting
                 int ima = ((char*)addr)+size-((char*)head);
-                struct chunkhead *newNext = (struct chunkhead*)&myheap[ima];
+                //struct chunkhead *newNext = (struct chunkhead*)&myheap[ima];
+                struct chunkhead *newNext = (char*)addr+size;
                 newNext->size = sizeDif;
                 newNext->info = 0;
                 newNext->prev = addr;
