@@ -44,6 +44,7 @@ char* mymalloc(int size){
     int pages = 1+(int)(( (float)size / (float) PAGESIZE));
     if(size % PAGESIZE) size = PAGESIZE*pages;      //only modify if not clean
     if(!head){
+        sbrk(0);
         head = sbrk(size);
         head->size=size;     //sizeof(chunkhead);
         head->info=1;           //empty head;
@@ -153,7 +154,10 @@ void myfree(char *address){
 }
 
 void analyze(){
-    
+    if(!head){
+        printf("No Heap PB:%p\n", sbrk(0));
+        return;
+    }
     struct chunkhead *addr = head;
     int i=1;
     while(addr){
@@ -167,7 +171,7 @@ void analyze(){
         i++;
         addr=addr->next;
     }
-    //if (i==1) printf("No heap\n");
+    
 }
 
 // void analyze(){
@@ -184,6 +188,13 @@ void analyze(){
 // }
 
 void test(){
+    char* testa = sbrk(0);
+    //printf("a\n");
+    char* testb = sbrk(0);
+
+    printf("%p\n%p\n", testa,testb);
+
+    return;
     byte* a[100];
     //analyze();//50% points
     for(int i=0;i<100;i++)a[i]= mymalloc(1000);
@@ -192,10 +203,18 @@ void test(){
     myfree(a[95]);
     a[95] = mymalloc(1000);
 
+
+    //printf("Start: %p\n",sbrk(0));
+
     analyze();//25% points, this new chunk should fill the smaller free one 
+
+    //printf("Start: %p\n",sbrk(0));
     //(best fit)
     //return;
     for(int i=90;i<100;i++)myfree(a[i]);
+
+    printf("Start: %p\n",sbrk(0));
+
     analyze();// 25% should be an empty heap now with the start address
     //from the program start
 }
