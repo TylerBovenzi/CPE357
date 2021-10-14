@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <time.h>
 #define PAGESIZE 4096
 
 //unsigned char myheap[1048576];
@@ -11,12 +12,13 @@ struct chunkhead{
     struct chunkhead *next,*prev;
 }chunkhead;
 struct chunkhead *head;
+struct chunkhead *last;
 
 struct chunkhead* findBestFit(int size){
     struct chunkhead* addr = head;
     int min = -1;
     struct chunkhead* minAddr = 0;
-    while(addr){
+    while(1){
         if(!addr->info){
             if(addr->size == size) return addr;
             if(min == -1){
@@ -29,7 +31,12 @@ struct chunkhead* findBestFit(int size){
                 }
             }
         }
+        if(!addr->next){
+            last = addr;
+            break;
+        }
         addr = addr->next;
+        
     }
     if(min == -1){
         return 0;
@@ -44,7 +51,7 @@ char* mymalloc(int size){
     int pages = 1+(int)(( (float)size / (float) PAGESIZE));
     if(size % PAGESIZE) size = PAGESIZE*pages;      //only modify if not clean
     if(!head){
-        sbrk(0);
+        printf("%c",0);
         head = sbrk(size);
         head->size=size;     //sizeof(chunkhead);
         head->info=1;           //empty head;
@@ -74,39 +81,11 @@ char* mymalloc(int size){
         }
         return (char*)(addr+1);
     }
-    while(addr->next){
-        addr = addr->next;
-    }
-
-    // while(1){                                    //iterate through all chunks
-    //     if(addr->size >= size && !addr->info){      //check for suitable chunk
-    //         //suitable chunk is found
-    //         int sizeDif = addr->size - size;        
-    //         addr->size=size;                        //set new size of addr  
-    //         addr->info=1;                           //set chunk as occupied 
-    //         if(sizeDif){                            //handle splitting
-    //             int ima = ((char*)addr)+size-((char*)head);
-                
-    //             //struct chunkhead *newNext = (struct chunkhead*)&myheap[ima];
-    //             struct chunkhead *newNext = (struct chunkhead*)((char*)(addr)+size);
-    //             newNext->size = sizeDif;
-    //             newNext->info = 0;
-    //             newNext->prev = addr;
-    //             if(addr->next){
-    //                 newNext->next = addr->next;
-    //                 newNext->next->prev = newNext;
-    //             }
-    //             addr->next = newNext;               //link to next
-    //         }
-    //         return (char*)(addr+1);
-    //     } else {                                    //no suitable chunk
-    //         if(!addr->next) break;
-    //         addr = addr->next;                      //check next
-    //     }
+    // while(addr->next){
+    //     addr = addr->next;
     // }
 
-
-
+    addr = last;
     struct chunkhead* new = sbrk(size);
     new->info = 1;
     new->size = size;
@@ -153,99 +132,75 @@ void myfree(char *address){
     }
 }
 
-void analyze(){
-    if(!head){
-        printf("No Heap PB:%p\n", sbrk(0));
-        return;
-    }
-    struct chunkhead *addr = head;
-    int i=1;
-    while(addr){
-        printf("Chunk #%d:\n", i);
-        printf("\tSize: %d\n", addr->size);
-        if(addr->info) printf("\t\033[0;31mOccupied\033[0m\n");
-        else printf ("\t\033[0;32mFree\033[0m\n");
-        printf("\tPrev: %p\n", addr->prev);
-        printf("\tAddr: %p\n", addr);
-        printf("\tNext: %p\n", addr->next);
-        i++;
-        addr=addr->next;
-    }
-    
-}
-
 // void analyze(){
-//     printf("\n--------------------------------------------------------------\n");
 //     if(!head){
-//         printf("no heap\n");
+//         printf("No Heap PB:%p\n", sbrk(0));
 //         return;
 //     }
-//     struct chunkhead* ch = (struct chunkhead*)head;
-//     for(int no=0; ch; ch = (struct chunkhead*)ch->next,no++){
-//         printf("%d | current addr: %p |", no, ch);printf("size: %d | ", ch->size);printf("info: %d | ", ch->info);printf("next: %p | ", ch->next);printf("prev: %p", ch->prev);printf("      \n");
+//     struct chunkhead *addr = head;
+//     int i=1;
+//     while(addr){
+//         printf("Chunk #%d:\n", i);
+//         printf("\tSize: %d\n", addr->size);
+//         if(addr->info) printf("\t\033[0;31mOccupied\033[0m\n");
+//         else printf ("\t\033[0;32mFree\033[0m\n");
+//         printf("\tPrev: %p\n", addr->prev);
+//         printf("\tAddr: %p\n", addr);
+//         printf("\tNext: %p\n", addr->next);
+//         i++;
+//         addr=addr->next;
 //     }
-//     printf("program break on address: %p\n",sbrk(0));
+    
 // }
 
+void analyze(){
+    printf("\n--------------------------------------------------------------\n");
+    if(!head){
+        printf("no heap\n");
+        return;
+    }
+    struct chunkhead* ch = (struct chunkhead*)head;
+    for(int no=0; ch; ch = (struct chunkhead*)ch->next,no++){
+        printf("% 3d | current addr: %p |", no, ch);printf("size: % 10d | ", ch->size);printf("%sinfo: %d\033[0m | ", ch-> info ? "\033[0;31m":"\033[0;32m", ch->info);printf("next: %p | ", ch->next);printf("prev: %p", ch->prev);printf("      \n");
+    }
+    printf("program break on address: %p\n",sbrk(0));
+}
+
 void test(){
-    char* testa = sbrk(0);
-    //printf("a\n");
-    char* testb = sbrk(0);
 
-    printf("%p\n%p\n", testa,testb);
-
-    return;
     byte* a[100];
-    //analyze();//50% points
+    analyze();//50% points
     for(int i=0;i<100;i++)a[i]= mymalloc(1000);
     for(int i=0;i<90;i++)myfree(a[i]);
-    //analyze(); //50% of points if this is correct
+    analyze(); //50% of points if this is correct
     myfree(a[95]);
     a[95] = mymalloc(1000);
 
 
-    //printf("Start: %p\n",sbrk(0));
-
     analyze();//25% points, this new chunk should fill the smaller free one 
 
-    //printf("Start: %p\n",sbrk(0));
-    //(best fit)
-    //return;
+   
     for(int i=90;i<100;i++)myfree(a[i]);
-
-    printf("Start: %p\n",sbrk(0));
 
     analyze();// 25% should be an empty heap now with the start address
     //from the program start
 }
 
-
+void testTime(){
+    byte* a[100];
+    clock_t ca, cb;
+    ca = clock();
+    for(int i=0;i<100;i++) a[i]= mymalloc(1000);
+    for(int i=0;i<90;i++) myfree(a[i]);
+    myfree(a[95]);
+    a[95] = mymalloc(1000);
+    for(int i=90;i<100;i++)myfree(a[i]);
+    cb = clock();
+    printf("\nduration: %ld\n", (cb -ca));
+}
 
 void main(){
-    test();
-    return;
-   
-    printf("Start: %p\n",sbrk(0));
-
-    printf("Start: %p\n",sbrk(0));
-    
-    char *a = mymalloc(5000);
-    char *b = mymalloc(12000);
-    char *c = mymalloc(1000);
-    char *d = mymalloc(8000);
-    char *e = mymalloc(4000);
-    myfree(b);
-    myfree(d);
-
-    //printf("out  : %p\n",findBestFit(4096));
-
-    //char *f = mymalloc(4000);
-
-    printf("End  : %p\n",sbrk(0));
-
-    analyze();
-
-
-
+    testTime();
+       //test();
 
 }

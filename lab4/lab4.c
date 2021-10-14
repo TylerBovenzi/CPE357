@@ -22,7 +22,7 @@ typedef unsigned int DWORD;
 typedef unsigned int LONG;
 typedef unsigned char BYTE;
 
-#define help "\n\033[0;32m---------------------------------------\n\tImage Blender Usage:\n---------------------------------------\033[0m\n\nPlease specify the following parameters:\n\t1. Input File 1 Name\n\t2. Input File 2 Name\n\t3. Blend ratio (0.0-1.0)\n\t4. Output File Name\n\n\033[1;31mParameters must be supplied in this order\033[0m\n\n"
+#define help "\n\033[0;32m---------------------------------------\n\tImage Brightener Usage:\n---------------------------------------\033[0m\n\nPlease specify the following parameters:\n\t1. Input File 1 Name\n\t2. Brightness Amount (0.0-1.0)\n\t3. Parallel 1=y, 0=n\n\t4. Output File Name\n\n\033[1;31mParameters must be supplied in this order\033[0m\n\n"
 
 
 typedef struct tagBITMAPFILEHEADER
@@ -184,8 +184,6 @@ void main(int args, char *arg[]){
         return;
     }
 
-
-
     bmp1 = readBMP(arg[1]);
     bmpOut = cloneBMP(bmp1);
     float ratio = (float)atof(arg[3]);
@@ -226,7 +224,7 @@ void main(int args, char *arg[]){
     msync(bmpOut.data, sizeof(bmpOut.InfoHead.biSizeImage), 4);
     writeBMP(arg[4],bmpOut);
     clock_t total = clock() - time;
-    printf("\033[0;32mFile brightened in %ld\n\033[0m", total);
+    printf("\033[0;32mFile brightened in %ld us\n\033[0m", total);
     
     munmap(bmp1.data, sizeof(bmp1.data));
     munmap(bmpOut.data, sizeof(bmpOut.data));
