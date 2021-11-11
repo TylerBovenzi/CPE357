@@ -11,9 +11,8 @@
 #include <stdlib.h>
 
 struct childinfo{
-    char *target, type;
+    char *target, type, active;
     int id;
-    char active;
 } childinfo;
 
 char checkfile(char *filename, char *text){
@@ -94,7 +93,7 @@ long search(char type, char *target, char *ext){
 //type=2    text non recursive
 //type=3    text recursive
 void main(){
-    struct childinfo processes[10];
+    struct childinfo *processes = mmap(0,120, 0x1 | 0x2, 0x20|0x01, -1, 0);
     for(int i =0; i<10; i++) processes[i].active =0;
     char numProcesses =0;
     char flush;
@@ -155,12 +154,22 @@ void main(){
                         arg[0]++;//remove first quote
                         arg[0][strlen(arg[0])-1] = 0;//remove second quote
                     }
-                    if(arg[1] && strstr(arg[1], "-s")) type+=1;
-                    else if(arg[2] && strstr(arg[2], "-s")) type+=1;
-                    if(arg[1] && strlen(arg[1]) > 3 && !strncmp("-f:", arg[1], 3)){
-                        ext = arg[1]+3;
-                    } else if(arg[2] && strlen(arg[2]) > 3 && !strncmp("-f:", arg[2], 3)){
-                        ext = arg[2]+3;
+                    if(arg[1]){
+                        if(strstr(arg[1], "-s")){ type+=1;}
+                        else if(arg[2]){
+                            if(strstr(arg[2], "-s")) type +=1;
+                        }
+                    }
+
+                    
+                    if(arg[1]){
+                        if(strlen(arg[1]) > 3 && !strncmp("-f:", arg[1], 3)){
+                            ext = arg[1]+3;
+                        }else if(arg[2]){
+                            if(strlen(arg[2]) > 3 && !strncmp("-f:", arg[2], 3)){
+                                ext = arg[2]+3;
+                            }
+                        }
                     }
                     if(!arg[0]){
                         printf("Please specify target\n");
@@ -168,10 +177,12 @@ void main(){
                         if(numProcesses<10){
                             int id = fork();
                             if(!id){
+                                sleep(5);
                                 search(type, arg[0], ext);
-                                sleep(20);
+                                printf("1:%d\n", getpid());
                                 return;
                             }
+                            printf("2:%d\n", id);
                             struct childinfo tempstruct;
                             for(int i =0; i<10; i++){
                                 if(processes[i].active == 0){
